@@ -20,7 +20,7 @@ public class FacturacionService
 
     public async Task<Factura> FacturarAsync(int presupuestoId)
     {
-        await using var transaction = await _db.Database.BeginTransactionAsync();
+        await using var transaction = await _db.Database.BeginTransactionAsync(); 
         try
         {
             if (await _db.Facturas.AnyAsync(c => c.PresupuestoId == presupuestoId))
@@ -38,6 +38,10 @@ public class FacturacionService
             foreach (var item in presupuesto.Items)
             {
                 var articulo = await _db.Articulos.FirstAsync(a => a.Id == item.ArticuloId);
+
+                if (articulo.StockActual < item.Cantidad)
+                    throw new InvalidOperationException($"No hay suficiente stock del artículo {articulo.Codigo} para facturar el presupuesto. Stock Actual: {articulo.StockActual}");
+
                 articulo.StockActual -= item.Cantidad;
             }
 
