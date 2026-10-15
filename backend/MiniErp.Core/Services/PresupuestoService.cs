@@ -29,6 +29,9 @@ public class PresupuestoService
 
         foreach (var item in presupuesto.Items)
         {
+            if (item.DescuentoPct < 0 || item.DescuentoPct > 100)
+                throw new InvalidOperationException($"El descuento debe estar entre 0% y 100%. Valor: {item.DescuentoPct}");
+
             var subtotalLinea /**/  = item.Cantidad * item.PrecioUnitario * (1 - item.DescuentoPct / 100m);
             var ivaLinea      /**/  = subtotalLinea * item.AlicuotaIva / 100m;
             subtotal          /**/ += subtotalLinea;
