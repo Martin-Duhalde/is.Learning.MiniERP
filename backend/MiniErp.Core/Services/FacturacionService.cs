@@ -19,6 +19,9 @@ public class FacturacionService
 
     public async Task<Factura> FacturarAsync(int presupuestoId)
     {
+        if (await _db.Facturas.AnyAsync(c => c.PresupuestoId == presupuestoId))
+            throw new InvalidOperationException("El presupuesto ya fue facturado.");
+        
         var presupuesto = await _db.Presupuestos
             .Include(p => p.Items)
             .FirstOrDefaultAsync(p => p.Id == presupuestoId)
