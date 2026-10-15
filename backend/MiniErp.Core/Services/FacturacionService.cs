@@ -20,7 +20,7 @@ public class FacturacionService
 
     public async Task<Factura> FacturarAsync(int presupuestoId)
     {
-        await using var transaction = await _db.Database.BeginTransactionAsync(); 
+        await using var transaction = await _db.Database.BeginTransactionAsync();
         try
         {
             if (await _db.Facturas.AnyAsync(c => c.PresupuestoId == presupuestoId))
@@ -35,9 +35,16 @@ public class FacturacionService
             if (DateTime.UtcNow > vencimiento)
                 throw new InvalidOperationException("El presupuesto esta vencido y no se puede facturar.");
 
+            /// selecciono los ids de los articulos.
+            var idsArticulos = presupuesto.Items.Select(i => i.ArticuloId).Distinct().ToList();
+
+            /// Traigo los artículos así no hago una consulta a la base de datos por cada item del presupuesto.
+            var articulos = await _db.Articulos.Where(a => idsArticulos.Contains(a.Id)).ToListAsync();
+
             foreach (var item in presupuesto.Items)
             {
-                var articulo = await _db.Articulos.FirstAsync(a => a.Id == item.ArticuloId);
+                var articulo = articulos.FirstOrDefault(a => a.Id == item.ArticuloId)
+                    ?? throw new InvalidOperationException($"El artículo con id {item.ArticuloId} no existe.");
 
                 if (articulo.StockActual < item.Cantidad)
                     throw new InvalidOperationException($"No hay suficiente stock del artículo {articulo.Codigo} para facturar el presupuesto. Stock Actual: {articulo.StockActual}");
@@ -63,7 +70,7 @@ public class FacturacionService
 
             await transaction.CommitAsync();
             return factura;
-        
+
         }
         catch
         {
