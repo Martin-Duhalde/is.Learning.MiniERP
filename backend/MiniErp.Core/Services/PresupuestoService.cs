@@ -32,7 +32,7 @@ public class PresupuestoService
             var subtotalLinea /**/  = item.Cantidad * item.PrecioUnitario * (1 - item.DescuentoPct / 100m);
             var ivaLinea      /**/  = subtotalLinea * item.AlicuotaIva / 100m;
             subtotal          /**/ += subtotalLinea;
-            iva               /**/ += ivaLinea;
+            iva               /**/ += Math.Round(ivaLinea, 2, MidpointRounding.AwayFromZero); /// Regla de negocios 2. El IVA se calcula por línea según su alícuota, redondeando a 2 decimales por línea, y recién después se suma.
         }
 
         decimal total = subtotal + iva;
