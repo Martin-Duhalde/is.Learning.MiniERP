@@ -25,5 +25,6 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Factura>().Property(f => f.Subtotal).HasColumnType("decimal(18,2)");
         modelBuilder.Entity<Factura>().Property(f => f.Iva).HasColumnType("decimal(18,2)");
         modelBuilder.Entity<Factura>().Property(f => f.Total).HasColumnType("decimal(18,2)");
+        modelBuilder.Entity<Factura>().HasIndex(f => f.PresupuestoId).IsUnique();
     }
 }
