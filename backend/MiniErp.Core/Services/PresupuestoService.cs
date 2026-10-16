@@ -24,6 +24,11 @@ public class PresupuestoService
     /// </summary>
     public Totales CalcularTotales(Presupuesto presupuesto)
     {
+        ArgumentNullException.ThrowIfNull(presupuesto);
+
+        if (presupuesto.Items is null || presupuesto.Items.Count == 0)
+            throw new InvalidOperationException("El presupuesto debe contener al menos un item.");
+
         decimal subtotal = 0m;
         decimal iva = 0m;
 
@@ -31,7 +36,7 @@ public class PresupuestoService
         {
             if (item.Cantidad <= 0)
                 throw new InvalidOperationException("La cantidad debe ser mayor a cero en todos los items del presupuesto.");
-            
+
             if (item.DescuentoPct < 0 || item.DescuentoPct > 100)
                 throw new InvalidOperationException($"El descuento debe estar entre 0% y 100%. Valor: {item.DescuentoPct}");
 
@@ -48,6 +53,15 @@ public class PresupuestoService
 
     public async Task<Presupuesto> CrearAsync(int clienteId, int validezDias, List<PresupuestoItem> items)
     {
+        if (validezDias <= 0)
+            throw new InvalidOperationException("La validez del presupuesto debe ser mayor a cero.");
+
+        if (!await _db.Clientes.AnyAsync(c => c.Id == clienteId))
+            throw new InvalidOperationException($"El cliente {clienteId} no existe.");
+
+        if (items is null || items.Count == 0)
+            throw new InvalidOperationException("El presupuesto debe contener al menos un item.");
+
         foreach (var item in items)
         {
             if (item.Cantidad <= 0)
