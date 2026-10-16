@@ -62,6 +62,12 @@ public class PresupuestoService
         if (items is null || items.Count == 0)
             throw new InvalidOperationException("El presupuesto debe contener al menos un item.");
 
+        /// selecciono los ids de los articulos.
+        var idsArticulos = items.Select(i => i.ArticuloId).Distinct().ToList();
+
+        /// Traigo los artículos así no hago una consulta a la base de datos por cada item del presupuesto.
+        var articulos = await _db.Articulos.Where(a => idsArticulos.Contains(a.Id)).ToDictionaryAsync(a => a.Id);
+
         foreach (var item in items)
         {
             if (item.Cantidad <= 0)
@@ -70,9 +76,8 @@ public class PresupuestoService
             if (item.DescuentoPct < 0 || item.DescuentoPct > 100)
                 throw new InvalidOperationException($"El descuento debe estar entre 0% y 100%. Valor: {item.DescuentoPct}");
 
-
-            var articulo = await _db.Articulos.FirstOrDefaultAsync(a => a.Id == item.ArticuloId)
-                ?? throw new InvalidOperationException($"El articulo {item.ArticuloId} no existe.");
+            if (!articulos.TryGetValue(item.ArticuloId, out var articulo))
+                throw new InvalidOperationException($"El artículo {item.ArticuloId} no existe.");
 
             // Tomamos precio y alicuota actuales del articulo como snapshot.
             item.PrecioUnitario = articulo.PrecioUnitario;
