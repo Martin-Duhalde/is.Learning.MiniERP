@@ -38,16 +38,16 @@ public class FacturacionService
             /// selecciono los ids de los articulos.
             var idsArticulos = presupuesto.Items.Select(i => i.ArticuloId).Distinct().ToList();
 
-            /// Traigo los artículos así no hago una consulta a la base de datos por cada item del presupuesto.
+            /// Traigo los artÃ­culos asÃ­ no hago una consulta a la base de datos por cada item del presupuesto.
             var articulos = await _db.Articulos.Where(a => idsArticulos.Contains(a.Id)).ToListAsync();
 
             foreach (var item in presupuesto.Items)
             {
                 var articulo = articulos.FirstOrDefault(a => a.Id == item.ArticuloId)
-                    ?? throw new InvalidOperationException($"El artículo con id {item.ArticuloId} no existe.");
+                    ?? throw new InvalidOperationException($"El artÃ­culo con id {item.ArticuloId} no existe.");
 
                 if (articulo.StockActual < item.Cantidad)
-                    throw new InvalidOperationException($"No hay suficiente stock del artículo {articulo.Codigo} para facturar el presupuesto. Stock Actual: {articulo.StockActual}");
+                    throw new InvalidOperationException($"No hay suficiente stock del artÃ­culo {articulo.Codigo} para facturar el presupuesto. Stock Actual: {articulo.StockActual}");
 
                 articulo.StockActual -= item.Cantidad;
             }

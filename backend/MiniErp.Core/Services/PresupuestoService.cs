@@ -43,7 +43,7 @@ public class PresupuestoService
             var subtotalLinea /**/  = item.Cantidad * item.PrecioUnitario * (1 - item.DescuentoPct / 100m);
             var ivaLinea      /**/  = subtotalLinea * item.AlicuotaIva / 100m;
             subtotal          /**/ += subtotalLinea;
-            iva               /**/ += Math.Round(ivaLinea, 2, MidpointRounding.AwayFromZero); /// Regla de negocios 2. El IVA se calcula por línea según su alícuota, redondeando a 2 decimales por línea, y recién después se suma.
+            iva               /**/ += Math.Round(ivaLinea, 2, MidpointRounding.AwayFromZero); /// Regla de negocios 2. El IVA se calcula por lÃ­nea segÃºn su alÃ­cuota, redondeando a 2 decimales por lÃ­nea, y reciÃ©n despuÃ©s se suma.
         }
 
         decimal total = subtotal + iva;
@@ -65,7 +65,7 @@ public class PresupuestoService
         /// selecciono los ids de los articulos.
         var idsArticulos = items.Select(i => i.ArticuloId).Distinct().ToList();
 
-        /// Traigo los artículos así no hago una consulta a la base de datos por cada item del presupuesto.
+        /// Traigo los artÃ­culos asÃ­ no hago una consulta a la base de datos por cada item del presupuesto.
         var articulos = await _db.Articulos.Where(a => idsArticulos.Contains(a.Id)).ToDictionaryAsync(a => a.Id);
 
         foreach (var item in items)
@@ -77,7 +77,7 @@ public class PresupuestoService
                 throw new InvalidOperationException($"El descuento debe estar entre 0% y 100%. Valor: {item.DescuentoPct}");
 
             if (!articulos.TryGetValue(item.ArticuloId, out var articulo))
-                throw new InvalidOperationException($"El artículo {item.ArticuloId} no existe.");
+                throw new InvalidOperationException($"El artÃ­culo {item.ArticuloId} no existe.");
 
             // Tomamos precio y alicuota actuales del articulo como snapshot.
             item.PrecioUnitario = articulo.PrecioUnitario;
@@ -114,7 +114,6 @@ public class PresupuestoService
             .Include(p => p.Cliente)
             .Include(p => p.Items)
                 .ThenInclude(i => i.Articulo)
-            .Where(p => p.Estado != EstadoPresupuesto.Borrador)
             .OrderByDescending(p => p.Numero)
             .ToListAsync();
     }

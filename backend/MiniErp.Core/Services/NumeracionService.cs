@@ -11,9 +11,10 @@ public class NumeracionService
 
     public async Task<int> ProximoNumeroPresupuestoAsync()
     {
-        // El proximo numero se calcula a partir de la cantidad de presupuestos existentes.
-        var cantidad = await _db.Presupuestos.CountAsync();
-        return cantidad + 1;
+        // Se calcula a partir del maximo existente, igual que el de facturas:
+        // contar filas repite numeros despues de eliminar un presupuesto.
+        var max = await _db.Presupuestos.MaxAsync(p => (int?)p.Numero) ?? 0;
+        return max + 1;
     }
 
     public async Task<int> ProximoNumeroFacturaAsync()
