@@ -124,6 +124,60 @@ cliente en `http://localhost:5173` (`cd frontend && npm run dev`). El puerto imp
 tiene CORS habilitado sólo para `localhost:5173`. La URL de la API se puede cambiar con
 `VITE_API_URL`.
 
+## Parte C - Stretch
+
+### 4. Duplicar presupuesto (endpoint + UI)
+
+`POST /api/presupuestos/{id}/duplicar` clona un presupuesto con **número nuevo, fecha de hoy y los
+precios y alícuotas actuales** de cada artículo. La implementación delega en `CrearAsync`, así que
+hereda la numeración, las validaciones y el refresco de precios en vez de duplicar esa lógica; el
+original conserva su snapshot.
+
+- 200 con el presupuesto nuevo; 404 con `{ error }` si el id no existe; duplicar uno ya facturado
+  es válido (es reemitir).
+- Cliente: botón **Duplicar** en la grilla, que avisa el número nuevo y refresca la lista.
+- Tests: `DuplicarPresupuestoTests.cs` (7 casos), incluido el que cambia el precio del artículo
+  entre el original y la copia para verificar el refresco, y que el original queda intacto.
+
+### 5. Reporte top-N (endpoint + UI)
+
+`GET /api/reportes/top-articulos?desde=&hasta=&top=` devuelve los artículos más facturados en un
+rango de fechas, inclusivo por día completo en UTC (que es como se guardan las fechas). Sin
+parámetros: últimos 30 días, top 5 (máximo 50).
+
+- Solo cuenta presupuestos **con factura** en el rango; el resto no suma.
+- **Decisión de negocio:** "monto facturado" se ordena por **monto neto (sin IVA)**. La respuesta
+  trae los tres números (`montoNeto`, `montoIva`, `montoTotal`) para que no quede ambiguo.
+- El IVA se recalcula **por línea redondeando a 2 decimales**, igual que `CalcularTotales`, para
+  que la suma del reporte coincida exactamente con los subtotales, el IVA y los totales de las
+  facturas (verificado por HTTP: $121.455,00 / $25.037,78 / $146.492,78).
+- Cliente: vista **Reporte top-N** con rango de fechas, cantidad y totales del top.
+- Tests: `ReporteTopArticulosTests.cs` (9 casos), incluido el redondeo por línea (935,56 y no
+  935,55 si se redondeara sobre la suma) y la consistencia exacta contra las facturas.
+
+### 6. Tests propios
+
+`dotnet test`: **45 tests, todos en verde** (los 6 originales del challenge + 39 propios, todos en
+archivos nuevos; no se modificó ningún test existente).
+
+- `ReglasDeNegocioTests.cs` (17): una por cada una de las 7 reglas. Cubre los huecos que no tenía
+  ningún test: el **redondeo del IVA por línea** (4.455 al 10,5% → 467,78; y 3 líneas → 1.403,34
+  en lugar de 1.403,33), la **numeración sin colisiones al borrar** y la **validez vencida**.
+- `FlujosDelReadmeTests.cs` (6): los 5 flujos del README usando `DbSeeder`, o sea con los mismos
+  artículos y precios que crea la API, así los valores esperados son los del enunciado
+  (39.500 / 7.822,50 / 47.322,50; ART-006 con stock 3; etcétera).
+- `DuplicarPresupuestoTests.cs` (7) y `ReporteTopArticulosTests.cs` (9).
+
+**Prueba de mutación:** reintroduje los tres bugs corregidos (IVA sin redondear por línea,
+numeración con `Count + 1` y el filtro de borradores en el listado) y los tests nuevos **fallaron
+los cuatro** que los cubren, con el detalle esperado (`Expected: 1403,34 / Actual: 1403,325`).
+Después restauré el código y la suite volvió a 45/45. Eso es lo que hace que la red de tests sea
+confiable y no decorativa.
+
+**Nota sobre la numeración:** `Max(Numero) + 1` cumple la regla ("secuencial y sin colisiones") y
+arregla el caso que fallaba, pero al borrar el último presupuesto **reutiliza** el número libre. Es
+aceptable para el challenge; para producción conviene una secuencia que no retroceda.
+
 ## Qué hice y qué dejé afuera
 
 **Hice (y verifiqué contra la API corriendo):**
@@ -136,16 +190,19 @@ tiene CORS habilitado sólo para `localhost:5173`. La URL de la API se puede cam
   el encoding de los mensajes), porque sin ellos el cliente no se podía ver funcionando.
 - `npm run lint` y `npm run build` en verde.
 - Verificación end-to-end: 25 chequeos contra la API (totales con alícuotas mixtas, redondeo por
-  línea, validaciones, stock, idempotencia, numeración tras borrar, 404) y CORS/preflight para el
-  origen 5173.
+  línea, validaciones, stock, idempotencia, numeración tras borrar, 404), CORS/preflight para el
+  origen 5173, y verificaciones HTTP del duplicado (16 chequeos) y del reporte (18).
+- **Parte C completa**: duplicar presupuesto con precios refrescados, reporte top-N de artículos
+  por monto facturado en un rango de fechas, y la suite de tests propios (39 tests nuevos). El
+  detalle está en la sección "Parte C - Stretch".
 
 **Dejé afuera, a propósito:**
 
-- **Parte C** (duplicar presupuesto con precios refrescados, reporte top-N por rango de fechas).
-  Es lo que el README marca como stretch y preferí asegurar los must-have.
-- **Tests propios del cliente.** No hay vitest instalado y sumarlo implicaba un `npm install`
-  nuevo; la lógica pura de `lib/totales.ts` se validó ejecutándola con Node y comparándola contra
-  la API. Con más tiempo, ese módulo es el primer candidato a test unitario.
+- **Tests automatizados del cliente.** Agregué la suite del backend (39 tests propios) pero no
+  vitest en el cliente: sumarlo implicaba un `npm install` nuevo. La lógica pura de
+  `lib/totales.ts` se validó ejecutándola con Node y comparándola contra la API, y la vista de
+  detalle compara los totales del backend contra el cálculo local. Con más tiempo, ese módulo es
+  el primer candidato a test unitario.
 - **Router / deep links.** La navegación por estado alcanza para tres vistas, pero no se puede
   linkear un presupuesto puntual.
 - Paginación, orden por columna, edición de un presupuesto ya creado y aviso temprano de stock
@@ -183,6 +240,12 @@ API corriendo en vez de confiar en el resultado.
      evento.
   3. Dio por hecho que podía compilar y correr todo dentro del confinamiento; las escrituras en
      subcarpetas del repo estaban bloqueadas y hubo que pedir permisos explícitos para el build.
+  4. Al editar `PresupuestoService.cs` normalizó los finales de línea del archivo entero (venía con
+     CRLF y LF mezclados) y el diff pasó de 22 a 94 líneas. Lo detecté comparando con
+     `--ignore-cr-at-eol` y quedó aclarado en el mensaje del commit.
+  5. En la verificación del reporte escribió un chequeo que comparaba contra el cuerpo de un 400
+     sin mirar el status y marcó "FALLA" un caso que estaba bien. Lo detecté al revisar el
+     resultado y lo volví a verificar mirando el status.
 - **Qué revisé yo:** que los números del cliente coincidan con los de la API (incluido el caso de
   redondeo 467,775 → 467,78 y el de "redondear por línea, no sobre la suma"), que el error de
   stock no deje el stock negativo, que la segunda facturación falle y que la numeración no se
@@ -190,16 +253,17 @@ API corriendo en vez de confiar en el resultado.
 
 ## Qué haría con más tiempo / qué falta para producción
 
-- **Tests**: unitarios de `lib/totales.ts` (vitest) con los casos de redondeo y alícuotas mixtas,
-  de componentes con testing-library, y un test de integración que corra la API y valide los
-  flujos completos.
+- **Tests del cliente**: unitarios de `lib/totales.ts` (vitest) con los casos de redondeo y
+  alícuotas mixtas, de componentes con testing-library, y un test de integración que corra la API
+  y valide los flujos completos. El backend ya tiene 45 tests.
 - **Numeración a prueba de concurrencia**: `Max(Numero) + 1` arregla la colisión tras borrar pero
   no dos altas simultáneas. Lo correcto es una secuencia en la base o un índice único sobre
   `Numero` con reintento.
 - **Aritmética de dinero**: reemplazar el `double` del cliente por centavos enteros (o una
   librería decimal) para eliminar el `1e-6` de `redondear2`.
-- **Parte C**: duplicar presupuesto con precios refrescados y reporte top-N de artículos por monto
-  facturado en un rango de fechas (endpoint + UI).
+- **Prueba de mutación automatizada**: hoy la corrí a mano; con más tiempo sería un script que
+  reintroduzca cada bug y verifique que la suite lo detecta, para que no se pueda "arreglar" un
+  test en lugar del código.
 - **UX/producto**: router con deep links, paginación y orden en la grilla, edición de
   presupuestos, aviso de stock insuficiente mientras se arma el presupuesto, export a PDF,
   manejo de sesión/usuarios y auditoría de quién facturó qué.
