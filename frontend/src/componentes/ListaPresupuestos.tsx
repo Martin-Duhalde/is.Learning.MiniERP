@@ -78,6 +78,19 @@ export function ListaPresupuestos({ recarga, onNuevo, onVer }: Props) {
     }
   }
 
+  async function duplicar(presupuesto: PresupuestoDto) {
+    setIdEnProceso(presupuesto.id)
+    try {
+      const copia = await api.duplicarPresupuesto(presupuesto.id)
+      avisar(presupuesto.id, { tipo: 'ok', texto: `Duplicado. Nuevo presupuesto N° ${copia.numero}.` })
+      refrescar()
+    } catch (e: unknown) {
+      avisar(presupuesto.id, { tipo: 'error', texto: mensajeDe(e) })
+    } finally {
+      setIdEnProceso(null)
+    }
+  }
+
   async function eliminar(presupuesto: PresupuestoDto) {
     if (!window.confirm(`¿Eliminar el presupuesto N° ${presupuesto.numero}?`)) return
 
@@ -175,6 +188,15 @@ export function ListaPresupuestos({ recarga, onNuevo, onVer }: Props) {
                     </button>
                     <button type="button" className="boton-secundario" onClick={() => onVer(presupuesto.id)}>
                       Ver
+                    </button>
+                    <button
+                      type="button"
+                      className="boton-secundario"
+                      onClick={() => duplicar(presupuesto)}
+                      disabled={enProceso}
+                      title="Clona el presupuesto con número nuevo y precios actuales"
+                    >
+                      Duplicar
                     </button>
                     <button
                       type="button"

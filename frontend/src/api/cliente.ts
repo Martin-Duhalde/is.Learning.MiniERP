@@ -76,6 +76,10 @@ export const api = {
   eliminarPresupuesto: (id: number) =>
     pedir<void>(`/api/presupuestos/${id}`, { method: 'DELETE' }),
 
+  // Clona un presupuesto con numero nuevo, fecha de hoy y precios refrescados.
+  duplicarPresupuesto: (id: number) =>
+    pedir<PresupuestoDto>(`/api/presupuestos/${id}/duplicar`, { method: 'POST' }),
+
   facturar: (presupuestoId: number) =>
     pedir<FacturaDto>(`/api/facturas/facturar/${presupuestoId}`, { method: 'POST' }),
 }
