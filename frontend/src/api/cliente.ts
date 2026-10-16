@@ -4,6 +4,7 @@ import type {
   CrearPresupuestoRequest,
   FacturaDto,
   PresupuestoDto,
+  TopArticuloDto,
 } from './tipos'
 
 /**
@@ -82,4 +83,10 @@ export const api = {
 
   facturar: (presupuestoId: number) =>
     pedir<FacturaDto>(`/api/facturas/facturar/${presupuestoId}`, { method: 'POST' }),
+
+  // Reportes
+  topArticulos: (desde: string, hasta: string, top: number) =>
+    pedir<TopArticuloDto[]>(
+      `/api/reportes/top-articulos?desde=${desde}&hasta=${hasta}&top=${top}`,
+    ),
 }

@@ -51,3 +51,12 @@ public record ClienteDto(
     string RazonSocial,
     string Cuit,
     string CondicionIva);
+
+public record TopArticuloDto(
+    int ArticuloId,
+    string Codigo,
+    string Descripcion,
+    int Cantidad,
+    decimal MontoNeto,
+    decimal MontoIva,
+    decimal MontoTotal);

@@ -74,3 +74,14 @@ export interface LineaNueva {
   cantidad: number
   descuentoPct: number
 }
+
+/** Fila del reporte top-N de artículos por monto facturado. */
+export interface TopArticuloDto {
+  articuloId: number
+  codigo: string
+  descripcion: string
+  cantidad: number
+  montoNeto: number
+  montoIva: number
+  montoTotal: number
+}

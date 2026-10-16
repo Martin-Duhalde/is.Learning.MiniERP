@@ -10,6 +10,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<NumeracionService>();
 builder.Services.AddScoped<PresupuestoService>();
 builder.Services.AddScoped<FacturacionService>();
+builder.Services.AddScoped<ReporteService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
