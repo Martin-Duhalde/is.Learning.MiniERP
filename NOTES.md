@@ -1,8 +1,49 @@
 # NOTES
 
-> Borrador generado a partir del historial de commits del repo y de la verificación
-> contra la API corriendo. Revisalo y ajustá el detalle de cada bug a tu experiencia:
-> la sección "Cómo usé IA" está escrita en primera persona y describe esta sesión.
+## Notas al Evaluador
+
+Hola, soy Martin Duhalde, un humano :)
+El challenge me pareció muy divertido, facil, consiso y hasta didáctico (sirve para enseñar).
+
+Metodología de desarrolo: Abordé la problmática en dos partes separadas.
+
+1. Analisis de Backend y fix de bugs.
+   Cómo es un proyecto nuevo, no utilicé IA para entender el backend, de esta manera puedo incorporar el negocio a mi imaginario.
+   Los primeros 8 commits los hice con revision de codigo tradicional, solo usé ia para chequear calidad pero muy poca interacción.
+
+2. Implementación del cliente
+   Creé la estructura en vite, y luego delegué la producción a la IA.
+   Mi rol fué de revisión de código y arquitectura.
+   El costo de la ia fué 0.21 USD en 2 prompts.
+
+Certifico que la arquitectura y alcance del proyecto está revisada y acepada por mi.
+
+¿Que hice?
+Cumplí la especificaciónn al 100% tratando de encontrar todos los vicios ocultos.
+
+¿Que no hice:
+Mejoras de la UI, react Router, menú, Modo Claro y Oscuro.
+Armar el repo para IA (generación de doc para minimzar tiempos y costos de IA)
+
+¿Que haría con mas tiempo?
+Calidad. Revisión de los proceso del negocio. Más Pruebas de backend. Pruebas de front.
+
+¿En que se equivocó la IA?
+En nada, siguio mi plan.
+Correcciones: le pedi que los botones de la grilla queden en un solo rengón.
+Chat GPT me sugirío algún cambio mínimo que no me parecio pertinente.
+
+Para producción?
+Es un MVP mínimo. Para Producción necesitamos definir Autentificación y autorización. Versiones de registro y concurrencia.
+CI/CD: Por ejemplo armar la pipeline en github actions y publicar en azure (o usar devops en lugar de github). O cualquier otra nube.
+Ambientes de desarrolol, pruebas, (preproducción) producción.
+Funcionalidades Faltantes: router con deep links, paginación y orden en la grilla, edición de presupuestos, aviso de stock insuficiente mientras se arma el presupuesto, export a PDF,
+manejo de sesión/usuarios y auditoría de quién facturó qué.
+
+Nota: Los commits que hice ayer estan distribuidos en el tiempo ya que no pude dedicarle dedicación esclusiva.
+
+Apartír de acá habla la IA (revisada y filtrada por mi para que sea simple para humanos):
+Este documento lo hizo revisando los commits (los mios y los de la IA)
 
 ## Bugs encontrados (backend)
 
@@ -42,7 +83,7 @@ historial de este repo.
    devolvía `CountAsync() + 1`. Con dos presupuestos (nº 1 y 2), al borrar el nº 1 y crear otro,
    el nuevo volvía a ser nº 2: colisión. Ahora se calcula con `Max(Numero) + 1`, igual que el de
    facturas. Verificado: a=10, b=11, se borra el 10, el siguiente es 12 y ningún número existente
-   se repite. *Limitación conocida:* no es seguro ante dos altas concurrentes (habría que usar
+   se repite. _Limitación conocida:_ no es seguro ante dos altas concurrentes (habría que usar
    una secuencia en la base o un índice único sobre `Numero`).
 10. **El listado ocultaba los presupuestos recién creados.** `PresupuestoService.ListarAsync`
     filtraba `Estado != Borrador`, y `CrearAsync` guarda con `Estado = Borrador`: un presupuesto
@@ -87,7 +128,7 @@ frontend/src/
 - `total = subtotal + iva`. El redondeo es sólo de presentación, con
   `Intl.NumberFormat('es-AR', { style:'currency', currency:'ARS' })`.
 
-`redondear2` implementa el *half away from zero* del backend con un detalle: los `decimal` de C#
+`redondear2` implementa el _half away from zero_ del backend con un detalle: los `decimal` de C#
 son exactos y los `double` de JS no (467,775 se representa 467,77499999999998), así que
 `Math.round(x * 100)` daría 467,77 cuando el backend devuelve 467,78. Se compensa sumando `1e-6`
 antes de redondear. Es un truco numérico explícito y documentado en el código; la alternativa
@@ -229,7 +270,8 @@ API corriendo en vez de confiar en el resultado.
   propuso arreglarlo; el historial mostró que ya estaba resuelto (`5697970`), así que saqué ese
   cambio. También propuso agregar un router y un framework de tests: los descarté por tiempo y
   porque no eran must-have.
-- **Dónde se equivocó** (lo dejé registrado porque es parte del proceso):
+
+- **Dónde se equivocó** (lo dejé registrado porque es parte del proceso): 0. [Mensaje de Martin] Este listado lo dejé, pero en realidad es el proceso que hace mi IA ante un nuevo proyecto.
   1. Escribió los scripts de verificación para PowerShell 7 y esta máquina tiene Windows
      PowerShell 5.1; además usó `Invoke-WebRequest` sin desactivar la barra de progreso, y el
      error de consola que eso produce lo interpretó como "no me pude conectar a la API". Eso
@@ -246,6 +288,7 @@ API corriendo en vez de confiar en el resultado.
   5. En la verificación del reporte escribió un chequeo que comparaba contra el cuerpo de un 400
      sin mirar el status y marcó "FALLA" un caso que estaba bien. Lo detecté al revisar el
      resultado y lo volví a verificar mirando el status.
+
 - **Qué revisé yo:** que los números del cliente coincidan con los de la API (incluido el caso de
   redondeo 467,775 → 467,78 y el de "redondear por línea, no sobre la suma"), que el error de
   stock no deje el stock negativo, que la segunda facturación falle y que la numeración no se
