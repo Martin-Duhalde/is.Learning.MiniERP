@@ -197,6 +197,22 @@ button:disabled {
   gap: 6px;
 }
 
+/* Las cuatro acciones de la grilla, siempre en una sola línea: si no, "Eliminar" se va
+   abajo y la fila queda del doble de alto. Van en su propio contenedor para que el
+   mensaje de resultado pueda seguir ocupando el ancho completo debajo. */
+.acciones-botones {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px;
+}
+
+.acciones-botones button {
+  padding: 5px 9px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
 .acciones-celda .aviso {
   flex-basis: 100%;
   margin: 0;

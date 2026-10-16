@@ -178,34 +178,37 @@ export function ListaPresupuestos({ recarga, onNuevo, onVer }: Props) {
                     {vencido && !yaFacturado && <span className="chip chip-vencido">Vencido</span>}
                   </td>
                   <td className="acciones-celda">
-                    <button
-                      type="button"
-                      onClick={() => facturar(presupuesto)}
-                      disabled={yaFacturado || enProceso}
-                      title={yaFacturado ? 'Este presupuesto ya fue facturado' : 'Facturar'}
-                    >
-                      {enProceso ? '…' : 'Facturar'}
-                    </button>
-                    <button type="button" className="boton-secundario" onClick={() => onVer(presupuesto.id)}>
-                      Ver
-                    </button>
-                    <button
-                      type="button"
-                      className="boton-secundario"
-                      onClick={() => duplicar(presupuesto)}
-                      disabled={enProceso}
-                      title="Clona el presupuesto con número nuevo y precios actuales"
-                    >
-                      Duplicar
-                    </button>
-                    <button
-                      type="button"
-                      className="boton-secundario"
-                      onClick={() => eliminar(presupuesto)}
-                      disabled={enProceso}
-                    >
-                      Eliminar
-                    </button>
+                    {/* En su propio contenedor para que las cuatro acciones queden en una línea. */}
+                    <div className="acciones-botones">
+                      <button
+                        type="button"
+                        onClick={() => facturar(presupuesto)}
+                        disabled={yaFacturado || enProceso}
+                        title={yaFacturado ? 'Este presupuesto ya fue facturado' : 'Facturar'}
+                      >
+                        {enProceso ? '…' : 'Facturar'}
+                      </button>
+                      <button type="button" className="boton-secundario" onClick={() => onVer(presupuesto.id)}>
+                        Ver
+                      </button>
+                      <button
+                        type="button"
+                        className="boton-secundario"
+                        onClick={() => duplicar(presupuesto)}
+                        disabled={enProceso}
+                        title="Clona el presupuesto con número nuevo y precios actuales"
+                      >
+                        Duplicar
+                      </button>
+                      <button
+                        type="button"
+                        className="boton-secundario"
+                        onClick={() => eliminar(presupuesto)}
+                        disabled={enProceso}
+                      >
+                        Eliminar
+                      </button>
+                    </div>
 
                     {mensaje && (
                       <p className={mensaje.tipo === 'ok' ? 'aviso aviso-ok' : 'aviso aviso-error'}>
